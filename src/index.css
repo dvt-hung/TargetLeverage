@@ -1,0 +1,261 @@
+@import "tailwindcss";
+
+:root {
+  /* Ice & Fire Palette */
+  --pixel-bg: #0b1026;
+  /* Very Dark Navy */
+  --pixel-card-bg: #161b33;
+  /* Dark Navy */
+  --pixel-text: #eef2f6;
+  /* Ice White */
+  --pixel-subtext: #8b9bb4;
+  /* Blue Grey */
+
+  --pixel-primary: #00f0ff;
+  /* Cyan (Ice) */
+  --pixel-secondary: #ff4d00;
+  /* Orange (Fire) */
+  --pixel-accent: #7000ff;
+  /* Electric Purple */
+  --pixel-success: #00ff9d;
+  /* Mint Green */
+  --pixel-warning: #ffb800;
+  /* Gold */
+
+  --pixel-border: #232d4b;
+  /* Lighter Navy */
+}
+
+body {
+  background-color: var(--pixel-bg);
+  color: var(--pixel-text);
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  image-rendering: pixelated;
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.1) 0%, transparent 50%),
+    linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent),
+    linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent);
+  background-size: 100% 100%, 50px 50px, 50px 50px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Press Start 2P', cursive;
+  letter-spacing: -1px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--pixel-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--pixel-primary);
+  border: 2px solid var(--pixel-bg);
+}
+
+/* Tech Borders */
+.tech-border {
+  position: relative;
+  border: 2px solid var(--pixel-border);
+  background: var(--pixel-card-bg);
+  clip-path: polygon(0 0,
+      100% 0,
+      100% calc(100% - 15px),
+      calc(100% - 15px) 100%,
+      0 100%);
+}
+
+.tech-border::before {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 15px;
+  height: 2px;
+  background: var(--pixel-primary);
+  transform: rotate(-45deg);
+  transform-origin: left;
+}
+
+.tech-input-container {
+  position: relative;
+  background: #0b1026;
+  border: 1px solid var(--pixel-border);
+  transition: all 0.3s ease;
+}
+
+.tech-input-container:focus-within {
+  border-color: var(--pixel-primary);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+}
+
+.tech-input-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background: var(--pixel-border);
+  clip-path: polygon(100% 0, 0 100%, 100% 100%);
+}
+
+.tech-input-container:focus-within::after {
+  background: var(--pixel-primary);
+}
+
+/* Logo Animation */
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    text-shadow: 0 0 10px var(--pixel-primary);
+  }
+
+  50% {
+    text-shadow: 0 0 20px var(--pixel-primary), 0 0 40px var(--pixel-secondary);
+  }
+}
+
+.logo-glow {
+  animation: pulse-glow 3s infinite;
+}
+
+@keyframes float-coin {
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-15px) rotate(10deg);
+  }
+}
+
+.coin-float {
+  animation: float-coin 4s ease-in-out infinite;
+}
+
+.coin-float-delayed {
+  animation: float-coin 4s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+@keyframes glitch-text {
+  0% {
+    transform: translate(0);
+  }
+
+  20% {
+    transform: translate(-2px, 2px);
+  }
+
+  40% {
+    transform: translate(-2px, -2px);
+  }
+
+  60% {
+    transform: translate(2px, 2px);
+  }
+
+  80% {
+    transform: translate(2px, -2px);
+  }
+
+  100% {
+    transform: translate(0);
+  }
+}
+
+@keyframes neon-flicker {
+
+  0%,
+  19%,
+  21%,
+  23%,
+  25%,
+  54%,
+  56%,
+  100% {
+    opacity: 1;
+    text-shadow: 6px 6px 0 #00f0ff;
+  }
+
+  20%,
+  24%,
+  55% {
+    opacity: 0.5;
+    text-shadow: none;
+  }
+}
+
+.logo-glitch:hover {
+  animation: glitch-text 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+  color: #00f0ff;
+}
+
+.logo-flicker {
+  animation: neon-flicker 4s infinite alternate;
+}
+
+@keyframes float-group {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+.animate-float-group {
+  animation: float-group 4s ease-in-out infinite;
+}
+
+/* Typing Animation */
+@keyframes typing-loop {
+
+  0%,
+  100% {
+    width: 0
+  }
+
+  40%,
+  60% {
+    width: 100%
+  }
+}
+
+@keyframes blink-caret {
+
+  from,
+  to {
+    border-color: transparent
+  }
+
+  50% {
+    border-color: var(--pixel-primary)
+  }
+}
+
+.typing-effect {
+  overflow: hidden;
+  border-right: .15em solid var(--pixel-primary);
+  white-space: nowrap;
+  animation:
+    typing-loop 6s steps(40, end) infinite,
+    blink-caret .75s step-end infinite;
+}
