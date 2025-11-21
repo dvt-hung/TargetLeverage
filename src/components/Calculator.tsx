@@ -1,16 +1,38 @@
 import { useState, useEffect } from 'react';
 
 const Calculator = () => {
-    const [balance, setBalance] = useState<string>('20');
-    const [riskAmount, setRiskAmount] = useState<string>('1');
-    const [entryPrice, setEntryPrice] = useState<string>('2');
-    const [stopLossPrice, setStopLossPrice] = useState<string>('1');
+    // Load balance and risk from localStorage, default to empty string
+    const [balance, setBalance] = useState<string>(() => {
+        return localStorage.getItem('balance') || '';
+    });
+    const [riskAmount, setRiskAmount] = useState<string>(() => {
+        return localStorage.getItem('riskAmount') || '';
+    });
+    const [entryPrice, setEntryPrice] = useState<string>('');
+    const [stopLossPrice, setStopLossPrice] = useState<string>('');
     const [result, setResult] = useState<{
         leverage: number;
         roundedLeverage: number;
         positionSize: number;
         riskPercent: number;
+        adjustedBalance: number;
+        adjustedPositionSize: number;
+        positionType: 'LONG' | 'SHORT';
     } | null>(null);
+
+    // Save balance to localStorage when it changes
+    useEffect(() => {
+        if (balance) {
+            localStorage.setItem('balance', balance);
+        }
+    }, [balance]);
+
+    // Save risk to localStorage when it changes
+    useEffect(() => {
+        if (riskAmount) {
+            localStorage.setItem('riskAmount', riskAmount);
+        }
+    }, [riskAmount]);
 
     const calculate = () => {
         const bal = parseFloat(balance);
@@ -18,7 +40,17 @@ const Calculator = () => {
         const entry = parseFloat(entryPrice);
         const sl = parseFloat(stopLossPrice);
 
-        if (!bal || !risk || !entry || !sl) return;
+        // Check if all values are valid numbers
+        if (!bal || !risk || !entry || !sl) {
+            setResult(null);
+            return;
+        }
+
+        // Check if entry and stop loss are different
+        if (entry === sl) {
+            setResult(null);
+            return;
+        }
 
         const priceDiff = Math.abs(entry - sl);
         const priceDiffPercent = priceDiff / entry;
@@ -26,11 +58,28 @@ const Calculator = () => {
         const positionSize = risk / priceDiffPercent;
         const leverage = positionSize / bal;
 
+        // Check for invalid results (Infinity, NaN)
+        if (!isFinite(leverage) || !isFinite(positionSize)) {
+            setResult(null);
+            return;
+        }
+
+        // Calculate adjusted balance for rounded leverage
+        const roundedLeverage = Math.ceil(leverage);
+        const adjustedBalance = positionSize / roundedLeverage;
+        const adjustedPositionSize = adjustedBalance * roundedLeverage;
+
+        // Determine position type: LONG if entry > stop loss, SHORT if entry < stop loss
+        const positionType = entry > sl ? 'LONG' : 'SHORT';
+
         setResult({
             leverage: leverage,
-            roundedLeverage: Math.ceil(leverage),
+            roundedLeverage: roundedLeverage,
             positionSize: positionSize,
-            riskPercent: (risk / bal) * 100
+            riskPercent: (risk / bal) * 100,
+            adjustedBalance: adjustedBalance,
+            adjustedPositionSize: adjustedPositionSize,
+            positionType: positionType
         });
     };
 
@@ -129,26 +178,60 @@ const Calculator = () => {
                         {result ? (
                             <div className="text-center w-full z-10 flex flex-col h-full justify-between">
                                 <div className="flex-grow flex flex-col justify-center">
-                                    <span className="block text-[#8b9bb4] text-xs uppercase tracking-[0.3em] mb-4">Target Leverage</span>
+                                    <div className="flex items-center justify-center gap-3 mb-4">
+                                        <span className="block text-[#8b9bb4] text-xs uppercase tracking-[0.3em]">Target Leverage</span>
+                                        <span className={`px-3 py-1 text-xs font-bold uppercase tracking-wider ${result.positionType === 'LONG'
+                                            ? 'bg-[#00f0ff]/20 text-[#00f0ff] border border-[#00f0ff]/50'
+                                            : 'bg-[#ff4d00]/20 text-[#ff4d00] border border-[#ff4d00]/50'
+                                            }`}>
+                                            {result.positionType}
+                                        </span>
+                                    </div>
                                     <div className="text-6xl md:text-7xl lg:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-[#00f0ff] to-[#0080ff] font-['Press_Start_2P'] drop-shadow-[0_0_15px_rgba(0,240,255,0.3)] break-all">
                                         {result.roundedLeverage}x
+                                    </div>
+                                    <div className="text-sm text-[#8b9bb4] mt-4 font-mono">
+                                        Exact: {result.leverage.toFixed(2)}x
                                     </div>
                                 </div>
 
                                 <div className="space-y-4 w-full border-t border-[#232d4b] pt-8 mt-8">
                                     <div className="flex justify-between items-center">
-                                        <span className="text-[#8b9bb4] text-sm uppercase">Position Size</span>
-                                        <span className="text-[#eef2f6] text-xl font-mono">${result.positionSize.toFixed(2)}</span>
+                                        <span className="text-[#8b9bb4] text-base">Position size</span>
+                                        <span className="text-[#eef2f6] text-lg font-mono">${result.positionSize.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <span className="text-[#8b9bb4] text-sm uppercase">Risk Exposure</span>
-                                        <span className="text-[#ff4d00] text-xl font-mono">{result.riskPercent.toFixed(2)}%</span>
+                                        <span className="text-[#8b9bb4] text-base">Risk exposure</span>
+                                        <span className="text-[#ff4d00] text-lg font-mono">{result.riskPercent.toFixed(2)}%</span>
                                     </div>
+
+                                    {/* Show adjustment suggestion only if rounded leverage differs from exact */}
+                                    {result.roundedLeverage !== Math.floor(result.leverage) && (
+                                        <div className="pt-4 mt-4 border-t border-[#232d4b]/50">
+                                            <div className="text-[#00f0ff] text-sm uppercase mb-3 flex items-center gap-2 tracking-wider font-bold">
+                                                <span className="w-1.5 h-1.5 bg-[#00f0ff] animate-pulse"></span>
+                                                Suggestion for {result.roundedLeverage}x
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[#8b9bb4] text-base">Adjusted Balance</span>
+                                                <span className="text-[#00f0ff] font-mono text-lg">${result.adjustedBalance.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center mt-3">
+                                                <span className="text-[#8b9bb4] text-base">Position Size</span>
+                                                <span className="text-[#eef2f6] font-mono text-lg">${result.adjustedPositionSize.toFixed(2)}</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ) : (
-                            <div className="text-[#232d4b] text-center font-['Press_Start_2P'] text-sm animate-pulse m-auto">
-                                SYSTEM READY
+                            <div className="text-center w-full z-10 flex flex-col h-full justify-center">
+                                <div className="flex-grow flex flex-col justify-center">
+                                    <span className="block text-[#8b9bb4] text-xs uppercase tracking-[0.3em] mb-4">Target Leverage</span>
+                                    <div className="text-6xl md:text-7xl lg:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-[#232d4b] to-[#1a2238] font-['Press_Start_2P'] break-all">
+                                        0x
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
