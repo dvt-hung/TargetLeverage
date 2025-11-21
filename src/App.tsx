@@ -40,6 +40,13 @@ function App() {
           </div>
         </div>
         <Calculator />
+
+        {/* Copyright Footer */}
+        <div className="mt-12 text-center">
+          <p className="text-[#8b9bb4] text-sm font-mono">
+            © {new Date().getFullYear()} by <span className="text-[#00f0ff] font-bold">H-IT</span>
+          </p>
+        </div>
       </div>
     </div>
   )
